@@ -1,6 +1,6 @@
 library(testthat)
-
-source(file.path(dirname(getwd()), "helpers", "helpers.r"))
+print(getwd())
+source(file.path(getwd(),"src" ,"helpers", "preprocessing.r"))
 
 # ─── min_det_prob_imputation ───────────────────────────────────────────────────
 
@@ -90,16 +90,16 @@ test_that("impute_data errors when stratify=TRUE and batch_vector is NULL", {
   )
 })
 
-test_that("impute_data warns and falls back when a batch has <3 samples", {
+test_that("impute_data warns and falls back when a batch has <3 samples with non-NA values for any proteins", {
   mat <- data.frame(
     a = c(1, NA, 3, 4, 5),
     b = c(NA, 5, 6, 7, 8),
     c = c(7, 8, NA, 9, 10)
   )
-  batch <- c("A", "A", "B", "B", "B")   # batch A has only 2 samples
+  batch <- c("A", "A", "B", "B", "B")   # batch A has only 2 samples with non-NA values for any proteins
   expect_warning(
     impute_data(mat, stratify_by_batch = TRUE, batch_vector = batch, method = "MinDet"),
-    "fewer than 3 samples"
+    "fewer than 3 non-NA values"
   )
 })
 
@@ -209,7 +209,109 @@ test_that("filter_proteins returns all columns when all pass threshold", {
   expect_equal(ncol(result), 3)
 })
 
+# ─── batch_correct ─────────────────────────────────────────────────────────────
+# data: samples as rows, features (proteins) as columns
 
+make_batch_data <- function(n_samples_per_batch = 5, n_features = 20, batch_effect = 5, seed = 42) {
+  set.seed(seed)
+  n <- n_samples_per_batch * 2
+  mat <- matrix(rnorm(n * n_features, mean = 10, sd = 1), nrow = n, ncol = n_features)
+  # add a clear batch effect to the second batch
+  batch_vector <- c(rep("A", n_samples_per_batch), rep("B", n_samples_per_batch))
+  mat[batch_vector == "B", ] <- mat[batch_vector == "B", ] + batch_effect
+  rownames(mat) <- paste0("s", seq_len(n))
+  colnames(mat) <- paste0("prot", seq_len(n_features))
+  list(data = as.data.frame(mat), batch = batch_vector)
+}
+
+test_that("batch_correct (limma) returns a data.frame", {
+  d <- make_batch_data()
+  result <- batch_correct(d$data, d$batch, method = "limma")
+  expect_s3_class(result, "data.frame")
+})
+
+test_that("batch_correct (limma) preserves dimensions", {
+  d <- make_batch_data()
+  result <- batch_correct(d$data, d$batch, method = "limma")
+  expect_equal(dim(result), dim(d$data))
+})
+
+test_that("batch_correct (limma) preserves row and column names", {
+  d <- make_batch_data()
+  result <- batch_correct(d$data, d$batch, method = "limma")
+  expect_equal(rownames(result), rownames(d$data))
+  expect_equal(colnames(result), colnames(d$data))
+})
+
+test_that("batch_correct (limma) reduces batch mean differences", {
+  d <- make_batch_data(batch_effect = 10)
+  batch_A <- d$batch == "A"
+  batch_B <- d$batch == "B"
+
+  mean_diff_before <- mean(abs(
+    colMeans(d$data[batch_B, ]) - colMeans(d$data[batch_A, ])
+  ))
+
+  result <- batch_correct(d$data, d$batch, method = "limma")
+
+  mean_diff_after <- mean(abs(
+    colMeans(result[batch_B, ]) - colMeans(result[batch_A, ])
+  ))
+
+  expect_lt(mean_diff_after, mean_diff_before)
+})
+
+test_that("batch_correct (limma) accepts character batch_vector (coerces to factor)", {
+  d <- make_batch_data()
+  expect_no_error(batch_correct(d$data, as.character(d$batch), method = "limma"))
+})
+
+test_that("batch_correct (limma) accepts factor batch_vector", {
+  d <- make_batch_data()
+  expect_no_error(batch_correct(d$data, as.factor(d$batch), method = "limma"))
+})
+
+test_that("batch_correct (combat) returns a data.frame", {
+  d <- make_batch_data()
+  result <- batch_correct(d$data, d$batch, method = "combat")
+  expect_s3_class(result, "data.frame")
+})
+
+test_that("batch_correct (combat) preserves dimensions", {
+  d <- make_batch_data()
+  result <- batch_correct(d$data, d$batch, method = "combat")
+  expect_equal(dim(result), dim(d$data))
+})
+
+test_that("batch_correct (combat) preserves row and column names", {
+  d <- make_batch_data()
+  result <- batch_correct(d$data, d$batch, method = "combat")
+  expect_equal(rownames(result), rownames(d$data))
+  expect_equal(colnames(result), colnames(d$data))
+})
+
+test_that("batch_correct (combat) reduces batch mean differences", {
+  d <- make_batch_data(batch_effect = 10)
+  batch_A <- d$batch == "A"
+  batch_B <- d$batch == "B"
+
+  mean_diff_before <- mean(abs(
+    colMeans(d$data[batch_B, ]) - colMeans(d$data[batch_A, ])
+  ))
+
+  result <- batch_correct(d$data, d$batch, method = "combat")
+
+  mean_diff_after <- mean(abs(
+    colMeans(result[batch_B, ]) - colMeans(result[batch_A, ])
+  ))
+
+  expect_lt(mean_diff_after, mean_diff_before)
+})
+
+test_that("batch_correct errors on unknown method", {
+  d <- make_batch_data()
+  expect_error(batch_correct(d$data, d$batch, method = "unknown"), "Unknown batch correction method")
+})
 
 
 # ─── proteomic_data_preprocessing ─────────────────────────────────────────────
@@ -217,14 +319,32 @@ test_that("filter_proteins returns all columns when all pass threshold", {
 test_that("proteomic_data_preprocessing preserves dimensions", {
   set.seed(42)
   mat <- data.frame(matrix(runif(20, 1, 100), nrow = 4))
-  result <- proteomic_data_preprocessing(mat)
+  result <- proteomic_data_preprocessing(mat,
+    normalization_method = "median",
+    imputation_method = "MinDet",
+    stratify_imputation_by_batch = FALSE,
+    batch_vector = NULL,
+    log_offset = 1,
+    batch_correct_method = "limma",
+    min_non_na_fraction = 0.5,
+    min_frac_in_one_class = FALSE
+  )
   expect_equal(dim(result), dim(mat))
 })
 
 test_that("proteomic_data_preprocessing removes all NAs (including zeros)", {
   set.seed(42)
   mat <- data.frame(matrix(c(runif(15, 1, 100), 0, NA, 0, NA, NA), nrow = 4))
-  result <- proteomic_data_preprocessing(mat)
+  result <- proteomic_data_preprocessing(mat,
+    normalization_method = "median",
+    imputation_method = "MinDet",
+    stratify_imputation_by_batch = FALSE,
+    batch_vector = NULL,
+    log_offset = 1,
+    batch_correct_method = "limma",
+    min_non_na_fraction = 0.5,
+    min_frac_in_one_class = FALSE
+  )
   expect_false(any(is.na(result)))
 })
 
@@ -232,7 +352,16 @@ test_that("proteomic_data_preprocessing preserves row and column names", {
   set.seed(1)
   mat <- data.frame(matrix(runif(9, 1, 10), nrow = 3))
   rownames(mat) <- c("s1", "s2", "s3")
-  result <- proteomic_data_preprocessing(mat)
+  result <- proteomic_data_preprocessing(mat,
+    normalization_method = "median",
+    imputation_method = "MinDet",
+    stratify_imputation_by_batch = FALSE,
+    batch_vector = NULL,
+    log_offset = 1,
+    batch_correct_method = "limma",
+    min_non_na_fraction = 0.5,
+    min_frac_in_one_class = FALSE
+  )
   expect_equal(rownames(result), c("s1", "s2", "s3"))
   expect_equal(colnames(result), colnames(mat))
 })

@@ -43,12 +43,18 @@ impute_data <- function(data, stratify_by_batch=TRUE, batch_vector=NULL, method 
         method <- "stochastic"
     }
 
-    # check if there are very low numers < 3 in any given batch, if so fall back to no stratification
+
+    # check if there are fewer than 3 non-NA values in any given batch, if so fall back to no stratification
     if (stratify_by_batch && !is.null(batch_vector)) {
-        batch_counts <- table(batch_vector)
-        if (any(batch_counts < 3)) {
-            warning("Some batches have fewer than 3 samples. Falling back to no stratification for imputation.")
-            stratify_by_batch <- FALSE
+        for (batch in unique(batch_vector)) {
+            batch_indices <- which(batch_vector == batch)
+            batch_data <- data[batch_indices, ]
+            non_na_counts <- colSums(!is.na(batch_data))
+            if (any(non_na_counts < 3)) {
+                warning(paste("Batch", batch, "has fewer than 3 non-NA values for some features. Falling back to no stratification for imputation."))
+                stratify_by_batch <- FALSE
+                break
+            }
         }
     }
 
@@ -88,6 +94,7 @@ min_det_prob_imputation <- function(data, global_min = FALSE, pct=0.01, method= 
         stop("Input data must be a matrix or data frame")
     }
     
+
     data <- as.data.frame(data)
     
     # for each sample (row), find the 'minimum' value
@@ -171,7 +178,6 @@ batch_correct <- function(data, batch_vector, method = "ComBat") {
         data_matrix <- t(as.matrix(data))
         
         # Apply limma removeBatchEffect
-        print("correcting with limma")
         corrected_matrix <- removeBatchEffect(
         x = data_matrix,
         batch = batch_vector
@@ -188,16 +194,58 @@ batch_correct <- function(data, batch_vector, method = "ComBat") {
     return(corrected_data)
 
 }
+get_required <- function(lst, key) {
+  # access an element from a named list, throwing an error if the key is not present
+  if (!key %in% names(lst)) stop(paste0("Required option '", key, "' not found"))
+  return(lst[[key]])
+}
+
+replace_required <- function(lst, key, value) {
+  # replace an element in a named list, throwing an error if the key is not present
+  if (!key %in% names(lst)) stop(paste0("Required option '", key, "' not found"))
+  lst[key] <- list(value)
+  return(lst)           
+}
+
+preprocess_data <- function(data, batch_vector, options) {
+    print("Preprocessing data with the following options:")
+    print(options)
+
+    data <- proteomic_data_preprocessing(data=data,
+        normalization_method=get_required(options, "normalization_method"),
+        imputation_method=get_required(options, "imputation_method"),
+        stratify_imputation_by_batch=get_required(options, "stratify_imputation_by_batch"),
+        batch_vector=batch_vector,
+        log_offset=get_required(options, "log_offset"),
+        batch_correct_method=get_required(options, "batch_correct_method"),
+        min_non_na_fraction=get_required(options, "min_non_na_fraction"),
+        min_frac_in_one_class=get_required(options, "min_frac_in_one_class")
+    )
+    return(data)
+
+}
 
 
-proteomic_data_preprocessing <- function(data, normalization_method = "median", imputation_method = "MinDet", stratify_imputation_by_batch = FALSE, batch_vector = NULL, log_offset = 1) {
+proteomic_data_preprocessing <- function(data, normalization_method, imputation_method, stratify_imputation_by_batch, batch_vector, log_offset, batch_correct_method, min_non_na_fraction, min_frac_in_one_class) {
         # convert any zeros to NA for imputation
         data[data == 0] <- NA
+
+        data <- filter_proteins(data, class_labels = batch_vector, min_frac_in_one_class = min_frac_in_one_class, min_non_na_fraction = min_non_na_fraction)
+
         #### log transformation
         data <- log2(data + log_offset)
         #### normalization
         data <- normalize_data(data, method = normalization_method)
         #### imputation
         data <- impute_data(data, method = imputation_method, stratify_by_batch = stratify_imputation_by_batch, batch_vector = batch_vector)
+        #### batch correction
+        if (!is.null(batch_correct_method)){ 
+            if (!is.null(batch_vector)) {
+                data <- batch_correct(data, batch_vector, method = batch_correct_method)
+            }
+            else {
+                warning("batch_vector is NULL, skipping batch correction")
+            }
+        }
     return(data)
 }

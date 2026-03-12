@@ -1,0 +1,9 @@
+{
+  "normalization_method": "median",
+  "log_offset": 1,
+  "imputation_method": "MinDet",
+  "stratify_imputation_by_batch": false,
+  "batch_correct_method": null,
+  "min_non_na_fraction": 0.5,
+  "min_frac_in_one_class": false
+}

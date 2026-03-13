@@ -365,3 +365,52 @@ test_that("proteomic_data_preprocessing preserves row and column names", {
   expect_equal(rownames(result), c("s1", "s2", "s3"))
   expect_equal(colnames(result), colnames(mat))
 })
+
+test_that("test argument case insensitivity", {
+  set.seed(1)
+  mat <- data.frame(matrix(runif(9, 1, 10), nrow = 3))
+  ##### lowercase
+  expect_no_error(proteomic_data_preprocessing(mat,
+    normalization_method = "median",
+    imputation_method = "mindet",
+    stratify_imputation_by_batch = FALSE,
+    batch_vector = NULL,
+    log_offset = 1,
+    batch_correct_method = "limma",
+    min_non_na_fraction = 0.5,
+    min_frac_in_one_class = FALSE
+  ))
+  expect_no_error(proteomic_data_preprocessing(mat,
+    normalization_method = "quantile",
+    imputation_method = "minprob",
+    stratify_imputation_by_batch = FALSE,
+    batch_vector = NULL,
+    log_offset = 1,
+    batch_correct_method = "combat",
+    min_non_na_fraction = 0.5,
+    min_frac_in_one_class = FALSE
+  ))
+
+  #### UPPERCASE
+  expect_no_error(proteomic_data_preprocessing(mat,
+    normalization_method = "MEDIAN",
+    imputation_method = "MINDET",
+    stratify_imputation_by_batch = FALSE,
+    batch_vector = NULL,
+    log_offset = 1,
+    batch_correct_method = "LIMMA",
+    min_non_na_fraction = 0.5,  
+    min_frac_in_one_class = FALSE
+  ))
+  expect_no_error(proteomic_data_preprocessing(mat,
+    normalization_method = "QUANTILE",
+    imputation_method = "MINPROB",
+    stratify_imputation_by_batch = FALSE,
+    batch_vector = NULL,
+    log_offset = 1,
+    batch_correct_method = "COMBAT",
+    min_non_na_fraction = 0.5,
+    min_frac_in_one_class = FALSE
+  ))
+
+})

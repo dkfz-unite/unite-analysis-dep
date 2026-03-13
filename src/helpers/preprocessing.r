@@ -37,9 +37,10 @@ filter_proteins <- function(data,class_labels, min_frac_in_one_class=FALSE, min_
 
 impute_data <- function(data, stratify_by_batch=TRUE, batch_vector=NULL, method = "MinDet", global_min = FALSE, pct=0.01) {
     # performs imputtaion of a dataset with missing values (NA) using either the MinDet or MinProb method, optionally stratified by batch
-    if (method == "MinDet") {
+    method <- tolower(as.character(method))
+    if (method == "mindet") {
         method <- "deterministic"
-    } else if (method == "MinProb") {
+    } else if (method == "minprob") {
         method <- "stochastic"
     }
 
@@ -109,6 +110,8 @@ min_det_prob_imputation <- function(data, global_min = FALSE, pct=0.01, method= 
         mins <- apply(data, 1, function(x) quantile(x, probs = pct, na.rm = TRUE))
     }
 
+    method <- tolower(as.character(method))
+
     if (method == "deterministic") {
         # replace NAs for each sample (row) with the corresponding minimum value
         for (j in seq_len(nrow(data))) {
@@ -142,6 +145,7 @@ min_det_prob_imputation <- function(data, global_min = FALSE, pct=0.01, method= 
 }
 
 normalize_data <- function(data, method = "median") {
+    method <- tolower(as.character(method))
     if (method == "quantile") {
         # transpose rows to columns for quantile normalization, to normalize rows (samples)
         normalized_data <- as.data.frame(t(normalize.quantiles(t(as.matrix(data)))))
@@ -159,6 +163,7 @@ normalize_data <- function(data, method = "median") {
 batch_correct <- function(data, batch_vector, method = "ComBat") {
     # convert batch_vector to factor if it's not already
     batch_vector <- as.factor(batch_vector)
+    method <- tolower(as.character(method))
      if (method == "combat") {    
 
         data_matrix <- t(as.matrix(data))

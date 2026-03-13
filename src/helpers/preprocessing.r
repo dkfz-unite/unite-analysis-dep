@@ -224,10 +224,10 @@ preprocess_data <- function(data, batch_vector, class_labels, options) {
         stratify_imputation_by_batch=get_required(options, "stratify_imputation_by_batch"),
         batch_vector=batch_vector,
         class_labels=class_labels,
-        log_offset=get_required(options, "log_offset"),
+        log_offset=get_required(options, "normalization_log_offset"),
         batch_correct_method=get_required(options, "batch_correct_method"),
-        min_non_na_fraction=get_required(options, "min_non_na_fraction"),
-        min_frac_in_one_class=get_required(options, "min_frac_in_one_class")
+        min_non_na_fraction=get_required(options, "min_non_missing_fraction"),
+        min_frac_in_one_class=get_required(options, "require_min_fraction_one_class")
     )
     return(data)
 

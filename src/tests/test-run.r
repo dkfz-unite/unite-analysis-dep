@@ -73,8 +73,8 @@ test_that("run.R works when metadata has no batch column", {
 	options_list$normalization_method <- "quantile"
 	options_list$imputation_method <- "MinDet"
 	options_list$stratify_imputation_by_batch <- FALSE
-	options_list$min_non_na_fraction <- 0.4
-	options_list$min_frac_in_one_class <- TRUE
+	options_list$min_non_missing_fraction <- 0.4
+	options_list$require_min_fraction_one_class <- TRUE
 
 	run <- run_analysis(data_df, metadata_no_batch, options_list)
 
@@ -95,9 +95,9 @@ test_that("run.R works with alternative options configuration", {
 	options_list$normalization_method <- "median"
 	options_list$imputation_method <- "MinProb"
 	options_list$stratify_imputation_by_batch <- FALSE
-	options_list$log_offset <- 1
-	options_list$min_non_na_fraction <- 0.5
-	options_list$min_frac_in_one_class <- FALSE
+	options_list$normalization_log_offset <- 1
+	options_list$min_non_missing_fraction <- 0.5
+	options_list$require_min_fraction_one_class <- FALSE
 
 	run <- run_analysis(data_df, metadata_df, options_list)
 

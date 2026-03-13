@@ -1,6 +1,7 @@
 library(testthat)
 library(readr)
 library(jsonlite)
+library(dplyr)
 
 repo_root <- getwd()
 run_script <- file.path(repo_root, "src", "run", "run.R")
@@ -64,10 +65,12 @@ test_that("run.R reproduces expected bundled results with batch metadata", {
 	expect_equal(result_df, expected_df)
 })
 
-test_that("run.R works when metadata has no batch column", {
+test_that("run.R works when metadata has empty batch column", {
 	data_df <- read_tsv(file.path(fixture_dir, "data.tsv"), show_col_types = FALSE)
 	metadata_df <- read_tsv(file.path(fixture_dir, "metadata.tsv"), show_col_types = FALSE)
-	metadata_no_batch <- metadata_df[, c("sample", "condition")]
+	# make batch column all empty values
+	metadata_no_batch <- metadata_df %>%
+		mutate(batch = "")
 
 	options_list <- fromJSON(file.path(fixture_dir, "options.json"), simplifyVector = TRUE)
 	options_list$normalization_method <- "quantile"

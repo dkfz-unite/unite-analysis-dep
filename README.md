@@ -90,8 +90,8 @@ sample4 B 2
 Where:
 - `sample` - name of the sample. Should be first column.
 - `condition` - condition of the sample (e.g. control or treatment). Should be second column.
-- `batch` - optional batch variable for batch correction
-- Shoule be at least two samples for each condition.
+- `batch` - optional batch variable for batch correction. If there is no batch variable, this column should be present but empty 
+- Should be at least two samples for each condition.
 - Should be exactly two conditions.
 
 ### Options configuration

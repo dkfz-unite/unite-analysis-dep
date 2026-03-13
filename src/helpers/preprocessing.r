@@ -217,13 +217,20 @@ replace_required <- function(lst, key, value) {
 preprocess_data <- function(data, batch_vector, class_labels, options) {
     print("Preprocessing data with the following options:")
     print(options)
+    
+    # check if batch_vector has nay NA or all empty, if so set to NULL for downstream functions
+    if (any(is.na(batch_vector)) || any(batch_vector == "")) {
+        batch_vector <- NULL
+    } else {
+        batch_vector <- as.factor(batch_vector)
+    }
 
     data <- proteomic_data_preprocessing(data=data,
         normalization_method=get_required(options, "normalization_method"),
         imputation_method=get_required(options, "imputation_method"),
         stratify_imputation_by_batch=get_required(options, "stratify_imputation_by_batch"),
         batch_vector=batch_vector,
-        class_labels=class_labels,
+        class_labels=as.factor(class_labels),
         log_offset=get_required(options, "normalization_log_offset"),
         batch_correct_method=get_required(options, "batch_correction_method"),
         min_non_na_fraction=get_required(options, "min_non_missing_fraction"),

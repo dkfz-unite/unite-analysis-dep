@@ -26,7 +26,7 @@ metadata_matrix <- as.data.frame(metadata[, -1]) # assuming first column is samp
 rownames(metadata_matrix) <- metadata[[1]] # set sample names as rownames
 
 # reorder metadata rows to match data matrix columns
-metadata_matrix <- metadata_matrix[match(colnames(data_matrix), rownames(metadata_matrix)), ]
+metadata_matrix <- metadata_matrix[match(colnames(data_matrix), rownames(metadata_matrix)), ,drop = FALSE]
 
 # transpose data_matrix as proteomic_data_preprocessing expects samples as rows, features as columns
 data_matrix <- t(data_matrix)

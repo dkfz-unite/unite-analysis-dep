@@ -32,7 +32,7 @@ metadata_matrix <- metadata_matrix[match(colnames(data_matrix), rownames(metadat
 data_matrix <- t(data_matrix)
 
 # process options - batch correct method must be NULL for differential expression analysis
-options <- replace_required(options, "batch_correct_method", NULL)
+options <- replace_required(options, "batch_correction_method", NULL)
 
 # if column "batch" is present in metadata, use it for batch correction, otherwise set to NULL
 if ("batch" %in% colnames(metadata_matrix)) {

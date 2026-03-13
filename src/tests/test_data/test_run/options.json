@@ -3,7 +3,7 @@
   "normalization_log_offset": 1,
   "imputation_method": "MinDet",
   "stratify_imputation_by_batch": false,
-  "batch_correct_method": null,
+  "batch_correction_method": null,
   "min_non_missing_fraction": 0.5,
   "require_min_fraction_one_class": false
 }

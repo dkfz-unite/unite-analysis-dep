@@ -73,11 +73,13 @@ impute_data <- function(data, stratify_by_batch=TRUE, batch_vector=NULL, method 
         # Loop through each batch and apply imputation separately
         for (batch in levels(batch_vector)) {
             batch_indices <- which(batch_vector == batch)
-            imputed_data[batch_indices, ] <- min_det_prob_imputation(data[batch_indices, ], global_min=global_min, pct=pct, method=method, sigma=sigma)
+            # passing null here will cause the function to use the median of the per-protein standard deviations as the sigma for stochastic imputation, which is a reasonable default
+            imputed_data[batch_indices, ] <- min_det_prob_imputation(data[batch_indices, ], global_min=global_min, pct=pct, method=method, sigma=NULL)
         }
     } else {
         # Apply imputation to the entire dataset without stratification
-        imputed_data <- min_det_prob_imputation(data, global_min=global_min, pct=pct, method=method, sigma=sigma)
+        # passing null here will cause the function to use the median of the per-protein standard deviations as the sigma for stochastic imputation, which is a reasonable default
+        imputed_data <- min_det_prob_imputation(data, global_min=global_min, pct=pct, method=method, sigma=NULL) 
     }
     rownames(imputed_data) <- rownames(data)
     colnames(imputed_data) <- colnames(data)

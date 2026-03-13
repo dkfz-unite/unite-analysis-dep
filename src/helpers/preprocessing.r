@@ -207,7 +207,7 @@ replace_required <- function(lst, key, value) {
   return(lst)           
 }
 
-preprocess_data <- function(data, batch_vector, options) {
+preprocess_data <- function(data, batch_vector, class_labels, options) {
     print("Preprocessing data with the following options:")
     print(options)
 
@@ -216,6 +216,7 @@ preprocess_data <- function(data, batch_vector, options) {
         imputation_method=get_required(options, "imputation_method"),
         stratify_imputation_by_batch=get_required(options, "stratify_imputation_by_batch"),
         batch_vector=batch_vector,
+        class_labels=class_labels,
         log_offset=get_required(options, "log_offset"),
         batch_correct_method=get_required(options, "batch_correct_method"),
         min_non_na_fraction=get_required(options, "min_non_na_fraction"),
@@ -226,11 +227,11 @@ preprocess_data <- function(data, batch_vector, options) {
 }
 
 
-proteomic_data_preprocessing <- function(data, normalization_method, imputation_method, stratify_imputation_by_batch, batch_vector, log_offset, batch_correct_method, min_non_na_fraction, min_frac_in_one_class) {
+proteomic_data_preprocessing <- function(data, normalization_method, imputation_method, stratify_imputation_by_batch, batch_vector, class_labels, log_offset, batch_correct_method, min_non_na_fraction, min_frac_in_one_class) {
         # convert any zeros to NA for imputation
         data[data == 0] <- NA
 
-        data <- filter_proteins(data, class_labels = batch_vector, min_frac_in_one_class = min_frac_in_one_class, min_non_na_fraction = min_non_na_fraction)
+        data <- filter_proteins(data, class_labels = class_labels, min_frac_in_one_class = min_frac_in_one_class, min_non_na_fraction = min_non_na_fraction)
 
         #### log transformation
         data <- log2(data + log_offset)

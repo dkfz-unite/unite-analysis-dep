@@ -44,6 +44,7 @@ if ("batch" %in% colnames(metadata_matrix)) {
 # preprocess data
 processed_data <- preprocess_data(data=data_matrix, 
                               batch_vector=batch_vector,
+                              class_labels=as.factor(metadata_matrix$condition), 
                               options = options)
 
 

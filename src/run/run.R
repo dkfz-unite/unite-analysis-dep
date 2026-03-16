@@ -26,26 +26,26 @@ metadata_matrix <- as.data.frame(metadata[, -1]) # assuming first column is samp
 rownames(metadata_matrix) <- metadata[[1]] # set sample names as rownames
 
 # reorder metadata rows to match data matrix columns
-metadata_matrix <- metadata_matrix[match(colnames(data_matrix), rownames(metadata_matrix)), ]
+metadata_matrix <- metadata_matrix[match(colnames(data_matrix), rownames(metadata_matrix)), ,drop = FALSE]
 
 # transpose data_matrix as proteomic_data_preprocessing expects samples as rows, features as columns
 data_matrix <- t(data_matrix)
 
 # process options - batch correct method must be NULL for differential expression analysis
-options <- replace_required(options, "batch_correct_method", NULL)
-
-# if column "batch" is present in metadata, use it for batch correction, otherwise set to NULL
-if ("batch" %in% colnames(metadata_matrix)) {
-  batch_vector <- as.factor(metadata_matrix$batch)
-} else {
-  batch_vector <- NULL
-}
+options <- replace_required(options, "batch_correction_method", NULL)
 
 # preprocess data
 processed_data <- preprocess_data(data=data_matrix, 
-                              batch_vector=batch_vector,
+                              batch_vector=metadata_matrix$batch,
+                              class_labels=metadata_matrix$condition, 
                               options = options)
 
+# check if batch column is empty or all NA, if so set batch_vector to NULL for da_analysis
+if (any(is.na(metadata_matrix$batch)) || any(metadata_matrix$batch == "")) {
+  batch_vector <- NULL
+} else {
+  batch_vector <- as.factor(metadata_matrix$batch)
+}
 
 # Get results
 results <- da_analysis(t(processed_data), condition=as.factor(metadata_matrix$condition), batch=batch_vector)

@@ -37,9 +37,10 @@ filter_proteins <- function(data,class_labels, min_frac_in_one_class=FALSE, min_
 
 impute_data <- function(data, stratify_by_batch=TRUE, batch_vector=NULL, method = "MinDet", global_min = FALSE, pct=0.01) {
     # performs imputtaion of a dataset with missing values (NA) using either the MinDet or MinProb method, optionally stratified by batch
-    if (method == "MinDet") {
+    method <- tolower(as.character(method))
+    if (method == "mindet") {
         method <- "deterministic"
-    } else if (method == "MinProb") {
+    } else if (method == "minprob") {
         method <- "stochastic"
     }
 
@@ -72,11 +73,13 @@ impute_data <- function(data, stratify_by_batch=TRUE, batch_vector=NULL, method 
         # Loop through each batch and apply imputation separately
         for (batch in levels(batch_vector)) {
             batch_indices <- which(batch_vector == batch)
-            imputed_data[batch_indices, ] <- min_det_prob_imputation(data[batch_indices, ], global_min=global_min, pct=pct, method=method, sigma=sigma)
+            # passing null here will cause the function to use the median of the per-protein standard deviations as the sigma for stochastic imputation, which is a reasonable default
+            imputed_data[batch_indices, ] <- min_det_prob_imputation(data[batch_indices, ], global_min=global_min, pct=pct, method=method, sigma=NULL)
         }
     } else {
         # Apply imputation to the entire dataset without stratification
-        imputed_data <- min_det_prob_imputation(data, global_min=global_min, pct=pct, method=method, sigma=sigma)
+        # passing null here will cause the function to use the median of the per-protein standard deviations as the sigma for stochastic imputation, which is a reasonable default
+        imputed_data <- min_det_prob_imputation(data, global_min=global_min, pct=pct, method=method, sigma=NULL) 
     }
     rownames(imputed_data) <- rownames(data)
     colnames(imputed_data) <- colnames(data)
@@ -108,6 +111,8 @@ min_det_prob_imputation <- function(data, global_min = FALSE, pct=0.01, method= 
         # apply sample (row)-specific minimum values
         mins <- apply(data, 1, function(x) quantile(x, probs = pct, na.rm = TRUE))
     }
+
+    method <- tolower(as.character(method))
 
     if (method == "deterministic") {
         # replace NAs for each sample (row) with the corresponding minimum value
@@ -142,6 +147,7 @@ min_det_prob_imputation <- function(data, global_min = FALSE, pct=0.01, method= 
 }
 
 normalize_data <- function(data, method = "median") {
+    method <- tolower(as.character(method))
     if (method == "quantile") {
         # transpose rows to columns for quantile normalization, to normalize rows (samples)
         normalized_data <- as.data.frame(t(normalize.quantiles(t(as.matrix(data)))))
@@ -159,6 +165,7 @@ normalize_data <- function(data, method = "median") {
 batch_correct <- function(data, batch_vector, method = "ComBat") {
     # convert batch_vector to factor if it's not already
     batch_vector <- as.factor(batch_vector)
+    method <- tolower(as.character(method))
      if (method == "combat") {    
 
         data_matrix <- t(as.matrix(data))
@@ -207,30 +214,38 @@ replace_required <- function(lst, key, value) {
   return(lst)           
 }
 
-preprocess_data <- function(data, batch_vector, options) {
+preprocess_data <- function(data, batch_vector, class_labels, options) {
     print("Preprocessing data with the following options:")
     print(options)
+    
+    # check if batch_vector has nay NA or all empty, if so set to NULL for downstream functions
+    if (any(is.na(batch_vector)) || any(batch_vector == "")) {
+        batch_vector <- NULL
+    } else {
+        batch_vector <- as.factor(batch_vector)
+    }
 
     data <- proteomic_data_preprocessing(data=data,
         normalization_method=get_required(options, "normalization_method"),
         imputation_method=get_required(options, "imputation_method"),
         stratify_imputation_by_batch=get_required(options, "stratify_imputation_by_batch"),
         batch_vector=batch_vector,
-        log_offset=get_required(options, "log_offset"),
-        batch_correct_method=get_required(options, "batch_correct_method"),
-        min_non_na_fraction=get_required(options, "min_non_na_fraction"),
-        min_frac_in_one_class=get_required(options, "min_frac_in_one_class")
+        class_labels=as.factor(class_labels),
+        log_offset=get_required(options, "normalization_log_offset"),
+        batch_correct_method=get_required(options, "batch_correction_method"),
+        min_non_na_fraction=get_required(options, "min_non_missing_fraction"),
+        min_frac_in_one_class=get_required(options, "require_min_fraction_one_class")
     )
     return(data)
 
 }
 
 
-proteomic_data_preprocessing <- function(data, normalization_method, imputation_method, stratify_imputation_by_batch, batch_vector, log_offset, batch_correct_method, min_non_na_fraction, min_frac_in_one_class) {
+proteomic_data_preprocessing <- function(data, normalization_method, imputation_method, stratify_imputation_by_batch, batch_vector, class_labels, log_offset, batch_correct_method, min_non_na_fraction, min_frac_in_one_class) {
         # convert any zeros to NA for imputation
         data[data == 0] <- NA
 
-        data <- filter_proteins(data, class_labels = batch_vector, min_frac_in_one_class = min_frac_in_one_class, min_non_na_fraction = min_non_na_fraction)
+        data <- filter_proteins(data, class_labels = class_labels, min_frac_in_one_class = min_frac_in_one_class, min_non_na_fraction = min_non_na_fraction)
 
         #### log transformation
         data <- log2(data + log_offset)

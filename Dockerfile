@@ -8,7 +8,6 @@ RUN apt-get clean
 
 FROM install AS final
 COPY ./src/run /src
-COPY ./src/helpers /src/helpers
 COPY ./app /app
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1

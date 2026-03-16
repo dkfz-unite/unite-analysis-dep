@@ -3,9 +3,9 @@ library(readr)
 library(jsonlite)
 library(dplyr)
 
-repo_root <- getwd()
-run_script <- file.path(repo_root, "src", "run", "run.R")
-fixture_dir <- file.path(repo_root, "src", "tests", "test_data", "test_run")
+run_dir <- getwd() # assume tests are executed from inside "run"
+run_script <- file.path(run_dir,"run.R")
+fixture_dir <- file.path(run_dir, "..", "tests", "test_data", "test_run")
 
 expect_true(file.exists(run_script))
 expect_true(file.exists(file.path(fixture_dir, "data.tsv")))
@@ -27,11 +27,11 @@ run_analysis <- function(data_df, metadata_df, options_list) {
 
 	old_wd <- getwd()
 	on.exit(setwd(old_wd), add = TRUE)
-	setwd(repo_root)
+	setwd(run_dir)
 
 	output <- system2(
 		command = "Rscript",
-		args = c(run_script, data_path, metadata_path, results_path, options_path),
+		args = c(run_script, work_dir),
 		stdout = TRUE,
 		stderr = TRUE
 	)

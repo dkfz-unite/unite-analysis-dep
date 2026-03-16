@@ -54,12 +54,12 @@ unite.analysis.dpe:latest
 ```
 
 ## Usage
-- Place the data files `data.tsv` and `metadata.tsv` in the `./data/{proc}` directory on the host machine.
+- Place the data files `data.tsv`, `metadata.tsv` and `options.json` in the `./data/{proc}` directory on the host machine.
 - Send a POST request to the `localhost:5310/api/run?key=[key]` endpoint, where `[key]` is the process key.
-- Analysis will run the command `Rscript` with the arguments `run.R {data}/{proc}/data.tsv {data}/{proc}/metadata.tsv {data}/{proc}/results.tsv` where `{proc}` is the process key.
+- Analysis will run the command `Rscript` with the arguments `run.R {data}/{proc}` where `{proc}` is the process key.
   - All entries of `{data}` will be replaced with the path to the data location in docker container (In the example `./data` on the host machine will be mounted to `/mnt/data` in container).
   - All entries of `{proc}` will be replaced with the process key.
-- Analysis will try to find the files `data.tsv` and `metadata.tsv` in the `{proc}` subfolder of the data location and use them as input.
+- Analysis will try to find the files `data.tsv`,`metadata.tsv` and `options.json` in the `{proc}` subfolder of the data location and use them as input.
 - Analysis will save the results to the file `results.tsv` in the same subfolder.
 
 ### Data format

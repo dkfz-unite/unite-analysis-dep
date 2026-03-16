@@ -8,10 +8,11 @@ source(file.path(getwd(), "helpers", "da_analysis.r"))
 
 # Get command line arguments
 args <- commandArgs(trailingOnly = TRUE)
-data_file <- args[1]
-metadata_file <- args[2]
-results_file <- args[3]
-options_file <- args[4]
+workdir <- args[1]
+metadata_file <- file.path(workdir, "metadata.tsv")
+results_file <- file.path(workdir, "results.tsv")
+data_file <- file.path(workdir, "data.tsv")
+options_file <- file.path(workdir, "options.json")
 
 # Read data and metadata
 data <- read_tsv(data_file)
@@ -53,3 +54,5 @@ results <- da_analysis(t(processed_data), condition=as.factor(metadata_matrix$co
 # Write results to file
 results <- rownames_to_column(results, var = "feature")
 write_tsv(results, results_file)
+print("Analysis complete, results written to:")
+print(results_file)

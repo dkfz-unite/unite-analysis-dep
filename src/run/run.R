@@ -54,5 +54,4 @@ results <- da_analysis(t(processed_data), condition=as.factor(metadata_matrix$co
 # Write results to file
 results <- rownames_to_column(results, var = "feature")
 write_tsv(results, results_file)
-print("Analysis complete, results written to:")
-print(results_file)
+

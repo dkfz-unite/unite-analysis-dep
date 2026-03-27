@@ -4,16 +4,15 @@
 R Limma based differential protein expression analysis application wrapped with web API.
 
 The service performs the following steps:
-1. Reads the input data and metadata files.
-2. Filters the data to remove missing values.
-3. Normalises the data using the `normalizeBetweenArrays` function from the `limma` package.
-4. Performs differential expression analysis using the `lmFit` and `eBayes` functions from the `limma` package.
-5. Saves the results to a file.
+1. Reads the input data, metadata and options files.
+2. Preprocesses the data (filters features, normalizes data, and imputes missing values) see `options configuration` below.
+3. Performs differential expression analysis using the `lmFit` and `eBayes` functions from the `limma` package.
+4. Saves the results to a file.
 
 ## Configuration
 To configure the application, change environment variables as required in [commands](https://github.com/dkfz-unite/unite-commands/blob/main/README.md#configuration) web service:
 - `UNITE_COMMAND` - command to run the analysis package (`Rscript`).
-- `UNITE_COMMAND_ARGUMENTS` - command arguments (`run.R {data}/{proc}/data.tsv {data}/{proc}/metadata.tsv {data}/{proc}/results.tsv`).
+- `UNITE_COMMAND_ARGUMENTS` - command arguments (`run.R {data}/{proc}).
 - `UNITE_SOURCE_PATH` - location of the source code in docker container (`/src`).
 - `UNITE_DATA_PATH` - location of the data in docker container (`/mnt/data`).
 - `UNITE_PROCESS_LIMIT` - maximum number of concurrent jobs (`1` - process is heavy and uses a lot of CPU).

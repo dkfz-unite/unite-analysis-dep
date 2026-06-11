@@ -41,15 +41,16 @@ processed_data <- preprocess_data(data=data_matrix,
                               class_labels=metadata_matrix$condition, 
                               options = options)
 
-# check if batch column is empty or all NA, if so set batch_vector to NULL for da_analysis
-if (any(is.na(metadata_matrix$batch)) || any(metadata_matrix$batch == "")) {
+# check if batch column is empty, all NA, or single-level; if so set batch_vector to NULL for da_analysis
+if (any(is.na(metadata_matrix$batch)) || any(metadata_matrix$batch == "") || length(unique(metadata_matrix$batch)) < 2) {
   batch_vector <- NULL
 } else {
   batch_vector <- as.factor(metadata_matrix$batch)
 }
 
 # Get results
-results <- da_analysis(t(processed_data), condition=as.factor(metadata_matrix$condition), batch=batch_vector)
+# relevel ensures that the last (second) category is always the reference category
+results <- da_analysis(t(processed_data), condition=relevel(as.factor(metadata_matrix$condition), ref = tail(metadata_matrix$condition, 1)), batch=batch_vector)
 #rownames(results) <- colnames(processed_data) # ensure feature names are preserved in results
 # Write results to file
 results <- rownames_to_column(results, var = "feature")

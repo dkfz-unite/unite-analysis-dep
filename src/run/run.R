@@ -26,6 +26,9 @@ rownames(data_matrix) <- data[[1]] # set feature names as rownames
 metadata_matrix <- as.data.frame(metadata[, -1]) # assuming first column is sample names
 rownames(metadata_matrix) <- metadata[[1]] # set sample names as rownames
 
+# keep reference category for later - this should be the last category listed
+ref_cat<-tail(metadata_matrix$condition, 1))
+
 # reorder metadata rows to match data matrix columns
 metadata_matrix <- metadata_matrix[match(colnames(data_matrix), rownames(metadata_matrix)), ,drop = FALSE]
 
@@ -50,7 +53,7 @@ if (any(is.na(metadata_matrix$batch)) || any(metadata_matrix$batch == "") || len
 
 # Get results
 # relevel ensures that the last (second) category is always the reference category
-results <- da_analysis(t(processed_data), condition=relevel(as.factor(metadata_matrix$condition), ref = tail(metadata_matrix$condition, 1)), batch=batch_vector)
+results <- da_analysis(t(processed_data), condition=relevel(as.factor(metadata_matrix$condition), ref = as.character(ref_cat), batch=batch_vector)
 #rownames(results) <- colnames(processed_data) # ensure feature names are preserved in results
 # Write results to file
 results <- rownames_to_column(results, var = "feature")

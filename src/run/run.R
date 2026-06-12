@@ -3,8 +3,8 @@ library(readr)
 library(dplyr)
 library(tibble)
 library(jsonlite)
-source(file.path(getwd(), "helpers", "preprocessing.r"))
-source(file.path(getwd(), "helpers", "da_analysis.r"))
+source(file.path(getwd(), "helpers", "preprocessing.R"))
+source(file.path(getwd(), "helpers", "da_analysis.R"))
 
 # Get command line arguments
 args <- commandArgs(trailingOnly = TRUE)

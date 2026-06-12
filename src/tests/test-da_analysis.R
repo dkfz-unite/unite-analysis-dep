@@ -1,7 +1,7 @@
 library(testthat)
 library(limma)
 
-source(file.path(getwd() ,"helpers", "da_analysis.r")) # run test from "run" directory
+source(file.path(getwd() ,"helpers", "da_analysis.R")) # run test from "run" directory
 
 # ─── helpers ──────────────────────────────────────────────────────────────────
 

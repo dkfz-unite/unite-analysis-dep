@@ -30,6 +30,9 @@ da_analysis <- function(data_matrix, condition, ref_category = NULL, batch=NULL)
     # return the top table of results for the condition coefficient (the second column of the design matrix)
     results <- topTable(efit, coef=2, number=Inf)
     # write the name of the contrast of the end of the output table
-    results$contrast <- colnames(design)[2]
+    ref = levels(conditions)[1]
+    test = levels(conditions)[2]
+
+    results$contrast <- paste0(test, " - ", ref)
     return(results)
 }

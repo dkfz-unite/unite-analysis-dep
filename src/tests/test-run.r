@@ -47,7 +47,7 @@ run_analysis <- function(data_df, metadata_df, options_list) {
 	)
 }
 
-required_result_columns <- c("feature", "logFC", "AveExpr", "t", "P.Value", "adj.P.Val", "B")
+required_result_columns <- c("feature", "logFC", "AveExpr", "t", "P.Value", "adj.P.Val", "B", "contrast")
 
 test_that("run.R reproduces expected bundled results with batch metadata", {
 	data_df <- read_tsv(file.path(fixture_dir, "data.tsv"), show_col_types = FALSE)

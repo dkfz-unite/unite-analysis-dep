@@ -93,6 +93,8 @@ test_that("run.R works when metadata has empty batch column", {
 test_that("last-occurring condition in metadata is the reference category", {
 	# feature1 is higher in A, feature2 higher in B; metadata ends with "B".
 	# With B as reference: logFC = A - B, so feature1 logFC > 0, feature2 logFC < 0.
+	# this test rquires the reference category be set explicitly in the script as the defualt 
+	# of as.factor is to set the first alphabetically as the ref category
 	# If the reference were A instead, both signs would flip.
 	data_df <- tibble::tibble(
 		feature = c("feature1", "feature2", "feature3"),

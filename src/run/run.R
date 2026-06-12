@@ -53,7 +53,7 @@ if (any(is.na(metadata_matrix$batch)) || any(metadata_matrix$batch == "") || len
 
 # Get results
 # relevel ensures that the last (second) category is always the reference category
-results <- da_analysis(t(processed_data), condition=relevel(as.factor(metadata_matrix$condition), ref = as.character(ref_cat)), batch=batch_vector)
+results <- da_analysis(t(processed_data), condition=metadata_matrix$condition, ref_category= ref_cat, batch=batch_vector)
 #rownames(results) <- colnames(processed_data) # ensure feature names are preserved in results
 # Write results to file
 results <- rownames_to_column(results, var = "feature")

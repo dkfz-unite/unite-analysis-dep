@@ -36,6 +36,36 @@ test_that("da_analysis rownames are feature names", {
 })
 
 
+# ─── condition validation ─────────────────────────────────────────────────────
+
+test_that("da_analysis errors with more than two conditions", {
+  d <- make_da_data()
+  condition_three <- c(d$condition, rep("C", 2))
+  data_three <- cbind(d$data, matrix(rnorm(nrow(d$data) * 2, mean = 10, sd = 1),
+                                     nrow = nrow(d$data),
+                                     dimnames = list(rownames(d$data), c("s11", "s12"))))
+  expect_error(da_analysis(data_three, condition_three))
+})
+
+test_that("da_analysis errors with only one condition", {
+  d <- make_da_data()
+  expect_error(da_analysis(d$data, rep("A", ncol(d$data))))
+})
+
+# ─── reference category ───────────────────────────────────────────────────────
+
+test_that("da_analysis ref_category changes the sign of logFC", {
+  d <- make_da_data()
+  result_ab <- da_analysis(d$data, d$condition, ref_category = "A")
+  result_ba <- da_analysis(d$data, d$condition, ref_category = "B")
+  expect_equal(result_ab[rownames(result_ba), "logFC"], -result_ba[, "logFC"])
+})
+
+test_that("da_analysis errors when ref_category is not one of the conditions", {
+  d <- make_da_data()
+  expect_error(da_analysis(d$data, d$condition, ref_category = "Z"))
+})
+
 # ─── batch handling ───────────────────────────────────────────────────────────
 
 test_that("da_analysis with batch returns same structure as without", {

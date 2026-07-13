@@ -1,6 +1,6 @@
 library(limma)
 library(sva)
-library(preprocessCore)
+
 
 filter_proteins <- function(data,class_labels, min_frac_in_one_class=FALSE, min_non_na_fraction = 0.5) {
     # data: a numeric matrix with samples as rows and features (proteins) as columns
@@ -150,7 +150,7 @@ normalize_data <- function(data, method = "median") {
     method <- tolower(as.character(method))
     if (method == "quantile") {
         # transpose rows to columns for quantile normalization, to normalize rows (samples)
-        normalized_data <- as.data.frame(t(normalize.quantiles(t(as.matrix(data)))))
+        normalized_data <- as.data.frame(t(normalizeQuantiles(t(as.matrix(data)))))
     } else if (method == "median") {
         normalized_result <- apply(data, 1, function(x) x - median(x, na.rm = TRUE))
         normalized_data <- as.data.frame(t(normalized_result))

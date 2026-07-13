@@ -1,6 +1,6 @@
 library(testthat)
 print(getwd())
-source(file.path(getwd(),"helpers", "preprocessing.r")) # run test from "run" directory
+source(file.path(getwd(),"helpers", "preprocessing.R")) # run test from "run" directory
 
 # ─── min_det_prob_imputation ───────────────────────────────────────────────────
 

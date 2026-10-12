@@ -1,0 +1,39 @@
+# UNITE editor settings, shared template: unite-meta/templates/editorconfig
+# Rules: unite-meta/docs/code-style.md
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.cs]
+indent_size = 4
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+# IDE0290: Use primary constructor
+csharp_style_prefer_primary_constructors = false
+
+[*.{csproj,props,targets}]
+indent_size = unset
+indent_style = unset
+
+[*.sln]
+charset = unset
+end_of_line = unset
+indent_style = unset
+indent_size = unset
+
+[*.{bat,cmd}]
+end_of_line = crlf
+
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab

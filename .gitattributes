@@ -1,0 +1,4 @@
+# UNITE Git attributes, shared template: unite-meta/templates/gitattributes
+# Store text files with LF line endings, whatever the editor saves.
+* text=auto eol=lf
+*.{bat,cmd} text eol=crlf
